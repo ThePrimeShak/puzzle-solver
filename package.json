@@ -1,5 +1,5 @@
 {
-  "name": "8-puzzle-ai-solver",
+  "name": "puzzle-solver",
   "private": true,
   "version": "0.0.0",
   "type": "module",
