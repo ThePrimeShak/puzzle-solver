@@ -27,6 +27,7 @@ const Puzzle = () => {
   const [isAutoRunning, setIsAutoRunning] = useState<boolean>(false);
   const [maxStepsAllowed, setMaxStepsAllowed] = useState<number>(1000);
   const [animationSpeed, setAnimationSpeed] = useState<number>(300);
+  const [isPuzzleShuffled, setIsPuzzleShuffled] = useState<boolean>(false);
   const intervalTimerRef = useRef<number | null>(null);
 
   function performRandomStep() {
@@ -114,6 +115,9 @@ const Puzzle = () => {
     setPossibleMoves(getValidMoves(shuffledBoard));
     setLastPerformedMove(null);
     setTotalSteps(0);
+
+    // Enable puzzle play
+    setIsPuzzleShuffled(true);
   }
 
   function resetToGoal() {
@@ -122,6 +126,9 @@ const Puzzle = () => {
     setPuzzleBoard(GOAL_STATE.slice());
     setMoveHistory(["Reset to GOAL"]);
     setTotalSteps(0);
+
+    // Disable puzzle play
+    setIsPuzzleShuffled(false);
   }
 
   // Update available moves whenever the board changes
@@ -151,6 +158,7 @@ const Puzzle = () => {
             resetToGoal={resetToGoal}
             isAutoRunning={isAutoRunning}
             startAutoSolving={startAutoSolving}
+            isPuzzleShuffled={isPuzzleShuffled}
           />
 
           <section

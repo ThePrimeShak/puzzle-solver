@@ -7,6 +7,7 @@ type ControlsProps = {
   resetToGoal: () => void;
   isAutoRunning: boolean;
   startAutoSolving: () => void;
+  isPuzzleShuffled: boolean;
 };
 
 const Controls: React.FC<ControlsProps> = ({
@@ -16,6 +17,7 @@ const Controls: React.FC<ControlsProps> = ({
   resetToGoal,
   isAutoRunning,
   startAutoSolving,
+  isPuzzleShuffled,
 }) => {
   return (
     <section aria-label="Puzzle Controls">
@@ -28,12 +30,20 @@ const Controls: React.FC<ControlsProps> = ({
           New Shuffle
         </ControlButton>
 
-        <ControlButton onClick={performRandomStep} variant="secondary">
+        <ControlButton
+          onClick={performRandomStep}
+          variant="secondary"
+          disabled={!isPuzzleShuffled}
+        >
           Step Once
         </ControlButton>
 
         {!isAutoRunning ? (
-          <ControlButton onClick={startAutoSolving} variant="secondary">
+          <ControlButton
+            onClick={startAutoSolving}
+            variant="secondary"
+            disabled={!isPuzzleShuffled}
+          >
             Run
           </ControlButton>
         ) : (

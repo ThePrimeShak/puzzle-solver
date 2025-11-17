@@ -2,12 +2,14 @@ type ControlButtonProps = {
   onClick: () => void;
   children: React.ReactNode;
   variant?: "primary" | "secondary" | "danger";
+  disabled?: boolean;
 };
 
 const ControlButton = ({
   onClick,
   children,
   variant = "primary",
+  disabled = false,
 }: ControlButtonProps) => {
   const baseClasses =
     "rounded text-white text-sm border px-3 py-1 cursor-pointer outline-none focus:outline-none transition-all duration-200 text-semibold active:scale-95";
@@ -16,12 +18,14 @@ const ControlButton = ({
     secondary: "hover:opacity-90",
     danger: "bg-red-500 hover:bg-red-600",
   };
+  const disabledClasses = "opacity-50 cursor-not-allowed";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`${baseClasses} ${variantClasses[variant]}`}
+      disabled={disabled}
+      className={`${baseClasses} ${variantClasses[variant]} ${disabled ? disabledClasses : ""}`}
     >
       {children}
     </button>
