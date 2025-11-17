@@ -1,6 +1,8 @@
 import type { BoardType } from "./types";
 
-// Goal state: 0 represents empty tile
-const GOAL_STATE: BoardType = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+export const GRID_SIZE = 3;
+export const EMPTY_TILE_VALUE = 0;
+export const DEFAULT_SHUFFLE_MOVES = 40;
 
-export { GOAL_STATE };
+// Goal state: 0 represents empty tile
+export const GOAL_STATE: BoardType = [0, 1, 2, 3, 4, 5, 6, 7, 8];

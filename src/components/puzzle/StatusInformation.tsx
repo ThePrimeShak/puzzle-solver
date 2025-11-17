@@ -1,5 +1,8 @@
-import { GOAL_STATE } from "@/constants";
 import type { BoardType, MoveType } from "@/types";
+import {
+  getAvailableMovesText,
+  getCurrentStatusText,
+} from "@/utils/status-information";
 
 type StatusInformationProps = {
   totalSteps: number;
@@ -16,29 +19,21 @@ const StatusInformation: React.FC<StatusInformationProps> = ({
   puzzleBoard,
   isAutoRunning,
 }) => {
-  const isSolved = (board: BoardType): boolean => {
-    return board.every((value, index) => value === GOAL_STATE[index]);
-  };
+  const displayLastMove = lastPerformedMove ?? "-";
+  const availableMovesText = getAvailableMovesText(possibleMoves);
+  const statusText = getCurrentStatusText(puzzleBoard, isAutoRunning);
 
   return (
     <section className="mb-3" aria-label="Status Information">
       <h2 className="mb-2 text-center text-lg font-semibold md:text-left">
         Status Information
       </h2>
+
       <div className="flex flex-col gap-1 text-center text-sm md:text-left">
         <span>Step count: {totalSteps}</span>
-        <span>Last move: {lastPerformedMove ?? "-"}</span>
-        <span>
-          Available moves: {possibleMoves.map((m) => m.direction).join(", ")}
-        </span>
-        <span>
-          Status:{" "}
-          {isSolved(puzzleBoard)
-            ? "Solved ✅"
-            : isAutoRunning
-              ? "Running..."
-              : "Idle"}
-        </span>
+        <span>Last move: {displayLastMove}</span>
+        <span>Available moves: {availableMovesText}</span>
+        <span>Status: {statusText}</span>
       </div>
     </section>
   );
