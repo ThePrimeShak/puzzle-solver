@@ -6,12 +6,12 @@ const History: React.FC<HistoryProps> = ({ histories }) => {
   const hasNoMoves = histories.length === 0;
 
   return (
-    <section className="flex flex-1 flex-col overflow-hidden">
+    <section className="flex flex-1 flex-col">
       <h2 className="mb-2 text-center text-lg font-semibold md:text-left">
         Move History
       </h2>
 
-      <div className="flex-1 overflow-auto rounded border bg-white p-2 text-black">
+      <div className="max-h-[530px] overflow-y-auto rounded border bg-white p-2 text-black">
         {hasNoMoves ? (
           <div className="text-center text-sm text-gray-500">No moves yet</div>
         ) : (
