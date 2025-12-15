@@ -11,6 +11,7 @@ type ControlsProps = {
   isPuzzleShuffled: boolean;
   selectedAlgorithm: AlgorithmType;
   setSelectedAlgorithm: (algorithm: AlgorithmType) => void;
+  loadHardestPuzzle: () => void;
 };
 
 const Controls: React.FC<ControlsProps> = ({
@@ -23,6 +24,7 @@ const Controls: React.FC<ControlsProps> = ({
   isPuzzleShuffled,
   selectedAlgorithm,
   setSelectedAlgorithm,
+  loadHardestPuzzle,
 }) => {
   return (
     <section aria-label="Puzzle Controls">
@@ -37,6 +39,14 @@ const Controls: React.FC<ControlsProps> = ({
           disabled={isAutoRunning}
         >
           New Shuffle
+        </ControlButton>
+
+        <ControlButton
+          onClick={loadHardestPuzzle}
+          variant="primary"
+          disabled={isAutoRunning}
+        >
+          Hardest Puzzle 🔥
         </ControlButton>
 
         <ControlButton

@@ -16,6 +16,8 @@ import {
   createHistoryEntry,
   solvePuzzleWithBFS,
   isPuzzleSolved,
+  getHardestPuzzle,
+  type BFSResult,
 } from "@/utils/puzzle";
 
 const Puzzle = () => {
@@ -35,7 +37,7 @@ const Puzzle = () => {
   const intervalTimerRef = useRef<number | null>(null);
   const bfsSolutionRef = useRef<MoveType[] | null>(null);
   const bfsStepIndexRef = useRef<number>(0);
-  const bfsVisitedCountRef = useRef<number>(0);
+  const bfsResultRef = useRef<BFSResult | null>(null);
 
   function performRandomStep() {
     // Check which algorithm is selected
@@ -135,14 +137,14 @@ const Puzzle = () => {
         return;
       }
 
-      // Store the solution path and visited count
+      // Store the solution path and BFS result
       bfsSolutionRef.current = result.solution;
       bfsStepIndexRef.current = 0;
-      bfsVisitedCountRef.current = result.visitedCount;
+      bfsResultRef.current = result;
 
       // Add message to history
       setMoveHistory((prev) => [
-        `BFS found a solution with ${result.solution.length} moves! (Visited ${result.visitedCount} states)`,
+        `BFS found a solution with ${result.solution.length} moves! (Explored ${result.nodesExplored} nodes, Visited ${result.visitedStates} states)`,
         ...prev,
       ]);
     }
@@ -158,12 +160,17 @@ const Puzzle = () => {
       if (selectedAlgorithm === "bfs" && bfsSolutionRef.current) {
         // Check if we've completed all BFS steps
         if (bfsStepIndexRef.current >= bfsSolutionRef.current.length) {
-          const solutionLength = bfsSolutionRef.current.length;
-          const visitedCount = bfsVisitedCountRef.current;
+          const result = bfsResultRef.current;
           stopAutoSolving();
-          alert(
-            `🎉 Puzzle solved successfully using BFS! ✅\n\nSolution: ${solutionLength} moves\nVisited states: ${visitedCount}`
-          );
+          
+          if (result) {
+            alert(
+              `🎉 Puzzle solved successfully using BFS! ✅\n\n` +
+              `Solution Depth: ${result.depth} moves\n` +
+              `Nodes Explored: ${result.nodesExplored}\n` +
+              `States Visited: ${result.visitedStates}`
+            );
+          }
           return;
         }
 
@@ -252,7 +259,7 @@ const Puzzle = () => {
     // Reset BFS solution tracking
     bfsSolutionRef.current = null;
     bfsStepIndexRef.current = 0;
-    bfsVisitedCountRef.current = 0;
+    bfsResultRef.current = null;
   }
 
   function resetAndShuffle() {
@@ -266,6 +273,24 @@ const Puzzle = () => {
     // Reset all state
     setMoveHistory([]);
     setPossibleMoves(getValidMoves(shuffledBoard));
+    setLastPerformedMove(null);
+    setTotalSteps(0);
+
+    // Enable puzzle play
+    setIsPuzzleShuffled(true);
+  }
+
+  function loadHardestPuzzle() {
+    // Stop any running auto-solve process
+    stopAutoSolving();
+
+    // Get one of the hardest puzzles
+    const hardestBoard = getHardestPuzzle();
+    setPuzzleBoard(hardestBoard);
+
+    // Reset all state
+    setMoveHistory(["Loaded hardest puzzle configuration"]);
+    setPossibleMoves(getValidMoves(hardestBoard));
     setLastPerformedMove(null);
     setTotalSteps(0);
 
@@ -314,6 +339,7 @@ const Puzzle = () => {
             isPuzzleShuffled={isPuzzleShuffled}
             selectedAlgorithm={selectedAlgorithm}
             setSelectedAlgorithm={setSelectedAlgorithm}
+            loadHardestPuzzle={loadHardestPuzzle}
           />
 
           <section

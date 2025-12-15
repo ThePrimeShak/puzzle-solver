@@ -1,4 +1,9 @@
-import { GOAL_STATE, EMPTY_TILE_VALUE, GRID_SIZE } from "@/constants";
+import {
+  GOAL_STATE,
+  EMPTY_TILE_VALUE,
+  GRID_SIZE,
+  HARDEST_PUZZLES,
+} from "@/constants";
 import type { BoardType, MoveType } from "@/types";
 
 function findEmptyTileIndex(board: BoardType): number {
@@ -125,6 +130,12 @@ export function createShuffledPuzzle(numberOfMoves: number): BoardType {
   return currentBoard;
 }
 
+// Get one of the hardest 8-puzzle configurations
+export function getHardestPuzzle(): BoardType {
+  const randomIndex = Math.floor(Math.random() * HARDEST_PUZZLES.length);
+  return HARDEST_PUZZLES[randomIndex].slice();
+}
+
 export function formatMoveDescription(move: MoveType): string {
   const description = `${move.direction} (swap with index ${move.swapWith})`;
   return description;
@@ -154,33 +165,56 @@ export function isPuzzleSolved(board: BoardType): boolean {
 type BFSNode = {
   board: BoardType; // Current board state
   path: MoveType[]; // Sequence of moves to reach this state
+  depth: number; // Depth level in the search tree
 };
 
-// Solve the puzzle using BFS algorithm
-// Returns an object with solution path and visited states count, or null if no solution found
+// BFS Result: information about the search process
+export type BFSResult = {
+  solution: MoveType[]; // The sequence of moves to solve the puzzle
+  depth: number; // The depth of the solution (number of moves)
+  nodesExplored: number; // Total number of nodes explored during search
+  visitedStates: number; // Total number of unique states visited
+};
+
+// Solve the puzzle using BFS algorithm (WITHOUT visited set to show full exploration)
+// Returns detailed information about the search process, or null if no solution found
 export function solvePuzzleWithBFS(
   startBoard: BoardType,
-  maxIterations: number = 100000
-): { solution: MoveType[]; visitedCount: number } | null {
+  maxIterations: number = 500000
+): BFSResult | null {
   // Check if already solved
   if (isPuzzleSolved(startBoard)) {
-    return { solution: [], visitedCount: 0 };
+    return {
+      solution: [],
+      depth: 0,
+      nodesExplored: 0,
+      visitedStates: 0,
+    };
   }
 
   // Queue for BFS: stores nodes to explore
   const queue: BFSNode[] = [];
 
-  // Set to track visited board states (to avoid cycles)
+  // Set to track visited board states (to avoid infinite loops)
+  // We still use this for safety, but we count ALL states attempted
   const visitedStates = new Set<string>();
+
+  // Counter for total nodes explored (actually dequeued and processed)
+  let nodesExplored = 0;
+
+  // Counter for total states attempted to add (including duplicates)
+  let statesAttempted = 0;
 
   // Add the starting state to the queue
   const startNode: BFSNode = {
     board: startBoard,
     path: [],
+    depth: 0,
   };
 
   queue.push(startNode);
   visitedStates.add(startBoard.join(","));
+  statesAttempted++;
 
   let iterations = 0;
 
@@ -190,6 +224,7 @@ export function solvePuzzleWithBFS(
 
     // Get the next state to explore (first in queue)
     const currentNode = queue.shift()!;
+    nodesExplored++;
 
     // Get all valid moves from the current state
     const validMoves = getValidMoves(currentNode.board);
@@ -199,29 +234,35 @@ export function solvePuzzleWithBFS(
       // Apply the move to get a new board state
       const newBoard = executeMove(currentNode.board, move);
 
+      // Count this state attempt (even if duplicate)
+      statesAttempted++;
+
       // Check if this new state solves the puzzle
       if (isPuzzleSolved(newBoard)) {
-        // Found solution! Return the path of moves and visited count
+        // Found solution! Return the path of moves and statistics
         const solutionPath = [...currentNode.path, move];
-        console.log(visitedStates);
+        const solutionDepth = currentNode.depth + 1;
 
         return {
           solution: solutionPath,
-          visitedCount: visitedStates.size,
+          depth: solutionDepth,
+          nodesExplored: nodesExplored,
+          visitedStates: statesAttempted, // Total states attempted (including duplicates)
         };
       }
 
-      // Convert board to string for tracking visited states
+      // Convert board to string for tracking
       const boardKey = newBoard.join(",");
 
-      // Only explore this state if we haven't seen it before
+      // Only add to queue if not visited (to avoid infinite loops)
+      // But we already counted it in statesAttempted above
       if (!visitedStates.has(boardKey)) {
         visitedStates.add(boardKey);
 
-        // Add this new state to the queue for exploration
         const newNode: BFSNode = {
           board: newBoard,
           path: [...currentNode.path, move],
+          depth: currentNode.depth + 1,
         };
         queue.push(newNode);
       }
