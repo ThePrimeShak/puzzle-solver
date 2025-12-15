@@ -139,3 +139,95 @@ export function createHistoryEntry(
   const entry = `#${moveNumber}: moved ${move.direction} -> board: [${boardString}]`;
   return entry;
 }
+
+// Check if the puzzle is solved by comparing with the goal state
+export function isPuzzleSolved(board: BoardType): boolean {
+  for (let i = 0; i < board.length; i++) {
+    if (board[i] !== GOAL_STATE[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// BFS Node: represents a state in the search tree
+type BFSNode = {
+  board: BoardType; // Current board state
+  path: MoveType[]; // Sequence of moves to reach this state
+};
+
+// Solve the puzzle using BFS algorithm
+// Returns an object with solution path and visited states count, or null if no solution found
+export function solvePuzzleWithBFS(
+  startBoard: BoardType,
+  maxIterations: number = 100000
+): { solution: MoveType[]; visitedCount: number } | null {
+  // Check if already solved
+  if (isPuzzleSolved(startBoard)) {
+    return { solution: [], visitedCount: 0 };
+  }
+
+  // Queue for BFS: stores nodes to explore
+  const queue: BFSNode[] = [];
+
+  // Set to track visited board states (to avoid cycles)
+  const visitedStates = new Set<string>();
+
+  // Add the starting state to the queue
+  const startNode: BFSNode = {
+    board: startBoard,
+    path: [],
+  };
+
+  queue.push(startNode);
+  visitedStates.add(startBoard.join(","));
+
+  let iterations = 0;
+
+  // BFS main loop: explore states level by level
+  while (queue.length > 0 && iterations < maxIterations) {
+    iterations++;
+
+    // Get the next state to explore (first in queue)
+    const currentNode = queue.shift()!;
+
+    // Get all valid moves from the current state
+    const validMoves = getValidMoves(currentNode.board);
+
+    // Try each possible move
+    for (const move of validMoves) {
+      // Apply the move to get a new board state
+      const newBoard = executeMove(currentNode.board, move);
+
+      // Check if this new state solves the puzzle
+      if (isPuzzleSolved(newBoard)) {
+        // Found solution! Return the path of moves and visited count
+        const solutionPath = [...currentNode.path, move];
+        console.log(visitedStates);
+
+        return {
+          solution: solutionPath,
+          visitedCount: visitedStates.size,
+        };
+      }
+
+      // Convert board to string for tracking visited states
+      const boardKey = newBoard.join(",");
+
+      // Only explore this state if we haven't seen it before
+      if (!visitedStates.has(boardKey)) {
+        visitedStates.add(boardKey);
+
+        // Add this new state to the queue for exploration
+        const newNode: BFSNode = {
+          board: newBoard,
+          path: [...currentNode.path, move],
+        };
+        queue.push(newNode);
+      }
+    }
+  }
+
+  // No solution found within the iteration limit
+  return null;
+}

@@ -6,7 +6,7 @@ import Controls from "@/components/puzzle/Controls";
 import History from "@/components/puzzle/History";
 import StatusInformation from "@/components/puzzle/StatusInformation";
 import { GOAL_STATE, DEFAULT_SHUFFLE_MOVES } from "@/constants";
-import type { BoardType, MoveType } from "@/types";
+import type { BoardType, MoveType, AlgorithmType } from "@/types";
 import {
   getValidMoves,
   executeMove,
@@ -14,6 +14,8 @@ import {
   createShuffledPuzzle,
   formatMoveDescription,
   createHistoryEntry,
+  solvePuzzleWithBFS,
+  isPuzzleSolved,
 } from "@/utils/puzzle";
 
 const Puzzle = () => {
@@ -28,42 +30,87 @@ const Puzzle = () => {
   const [maxStepsAllowed, setMaxStepsAllowed] = useState<number>(1000);
   const [animationSpeed, setAnimationSpeed] = useState<number>(300);
   const [isPuzzleShuffled, setIsPuzzleShuffled] = useState<boolean>(false);
+  const [selectedAlgorithm, setSelectedAlgorithm] =
+    useState<AlgorithmType>("bfs");
   const intervalTimerRef = useRef<number | null>(null);
+  const bfsSolutionRef = useRef<MoveType[] | null>(null);
+  const bfsStepIndexRef = useRef<number>(0);
+  const bfsVisitedCountRef = useRef<number>(0);
 
   function performRandomStep() {
-    setPuzzleBoard((currentBoard) => {
-      const availableMoves = getValidMoves(currentBoard);
-      setPossibleMoves(availableMoves);
+    // Check which algorithm is selected
+    if (selectedAlgorithm === "bfs") {
+      // For BFS: compute a fresh solution and execute only the first move
+      const result = solvePuzzleWithBFS(puzzleBoard);
 
-      // If no moves are available, keep the current board
-      const hasNoAvailableMoves = availableMoves.length === 0;
-      if (hasNoAvailableMoves) {
-        return currentBoard;
+      // Handle edge cases
+      if (result === null) {
+        alert("BFS could not find a solution within the iteration limit.");
+        return;
       }
 
-      const selectedMove = selectRandomMove(availableMoves);
-      const updatedBoard = executeMove(currentBoard, selectedMove);
+      if (result.solution.length === 0) {
+        alert("Puzzle is already solved! ✅");
+        return;
+      }
 
-      const moveDescription = formatMoveDescription(selectedMove);
-      setLastPerformedMove(moveDescription);
+      // Execute only the FIRST move from the BFS solution
+      const firstMove = result.solution[0];
 
-      // Add this move to the history
-      setMoveHistory((previousHistory) => {
-        const moveNumber = previousHistory.length + 1;
-        const historyEntry = createHistoryEntry(
-          moveNumber,
-          selectedMove,
-          updatedBoard
-        );
-        const newHistory = [historyEntry, ...previousHistory];
-        return newHistory;
+      setPuzzleBoard((currentBoard) => {
+        const updatedBoard = executeMove(currentBoard, firstMove);
+        const moveDescription = formatMoveDescription(firstMove);
+        setLastPerformedMove(moveDescription);
+
+        setMoveHistory((previousHistory) => {
+          const moveNumber = previousHistory.length + 1;
+          const historyEntry = createHistoryEntry(
+            moveNumber,
+            firstMove,
+            updatedBoard
+          );
+          return [historyEntry, ...previousHistory];
+        });
+
+        setTotalSteps((prev) => prev + 1);
+        return updatedBoard;
       });
+    } else {
+      // For Random: perform a random move
+      setPuzzleBoard((currentBoard) => {
+        const availableMoves = getValidMoves(currentBoard);
+        setPossibleMoves(availableMoves);
 
-      // Increment the step counter
-      setTotalSteps((previousSteps) => previousSteps + 1);
+        // If no moves are available, keep the current board
+        const hasNoAvailableMoves = availableMoves.length === 0;
+        if (hasNoAvailableMoves) {
+          return currentBoard;
+        }
 
-      return updatedBoard;
-    });
+        const selectedMove = selectRandomMove(availableMoves);
+        const updatedBoard = executeMove(currentBoard, selectedMove);
+
+        const moveDescription = formatMoveDescription(selectedMove);
+        setLastPerformedMove(moveDescription);
+
+        // Add this move to the history
+        setMoveHistory((previousHistory) => {
+          const moveNumber = previousHistory.length + 1;
+          const historyEntry = createHistoryEntry(
+            moveNumber,
+            selectedMove,
+            updatedBoard
+          );
+          const newHistory = [historyEntry, ...previousHistory];
+          return newHistory;
+        });
+
+        // Increment the step counter
+        setTotalSteps((previousSteps) => previousSteps + 1);
+
+        return updatedBoard;
+      });
+    }
   }
 
   function startAutoSolving() {
@@ -73,6 +120,33 @@ const Puzzle = () => {
       return;
     }
 
+    if (selectedAlgorithm === "bfs") {
+      // Try to first find the solution using BFS
+
+      const result = solvePuzzleWithBFS(puzzleBoard);
+
+      if (result === null) {
+        alert("BFS could not find a solution within the iteration limit.");
+        return;
+      }
+
+      if (result.solution.length === 0) {
+        alert("Puzzle is already solved! ✅");
+        return;
+      }
+
+      // Store the solution path and visited count
+      bfsSolutionRef.current = result.solution;
+      bfsStepIndexRef.current = 0;
+      bfsVisitedCountRef.current = result.visitedCount;
+
+      // Add message to history
+      setMoveHistory((prev) => [
+        `BFS found a solution with ${result.solution.length} moves! (Visited ${result.visitedCount} states)`,
+        ...prev,
+      ]);
+    }
+
     setIsAutoRunning(true);
     let stepsTaken = 0;
 
@@ -80,14 +154,88 @@ const Puzzle = () => {
     intervalTimerRef.current = setInterval(() => {
       stepsTaken = stepsTaken + 1;
 
-      // Stop if we've reached the maximum allowed steps
-      const hasReachedMaxSteps = stepsTaken >= maxStepsAllowed;
-      if (hasReachedMaxSteps) {
-        stopAutoSolving();
+      // For BFS mode: execute the pre-computed solution
+      if (selectedAlgorithm === "bfs" && bfsSolutionRef.current) {
+        // Check if we've completed all BFS steps
+        if (bfsStepIndexRef.current >= bfsSolutionRef.current.length) {
+          const solutionLength = bfsSolutionRef.current.length;
+          const visitedCount = bfsVisitedCountRef.current;
+          stopAutoSolving();
+          alert(
+            `🎉 Puzzle solved successfully using BFS! ✅\n\nSolution: ${solutionLength} moves\nVisited states: ${visitedCount}`
+          );
+          return;
+        }
+
+        // Execute the next move from the BFS solution
+        const nextMove = bfsSolutionRef.current[bfsStepIndexRef.current];
+        bfsStepIndexRef.current += 1;
+
+        setPuzzleBoard((currentBoard) => {
+          const updatedBoard = executeMove(currentBoard, nextMove);
+          const moveDescription = formatMoveDescription(nextMove);
+          setLastPerformedMove(moveDescription);
+
+          setMoveHistory((previousHistory) => {
+            const moveNumber = previousHistory.length + 1;
+            const historyEntry = createHistoryEntry(
+              moveNumber,
+              nextMove,
+              updatedBoard
+            );
+            return [historyEntry, ...previousHistory];
+          });
+
+          setTotalSteps((prev) => prev + 1);
+          return updatedBoard;
+        });
+
         return;
       }
 
-      performRandomStep();
+      // For random mode: check if solved
+      if (selectedAlgorithm === "random") {
+        // Check if puzzle is solved before taking another step
+        setPuzzleBoard((currentBoard) => {
+          if (isPuzzleSolved(currentBoard)) {
+            stopAutoSolving();
+            alert("🎉 Puzzle solved! ✅");
+            return currentBoard;
+          }
+
+          // Stop if we've reached the maximum allowed steps
+          const hasReachedMaxSteps = stepsTaken >= maxStepsAllowed;
+          if (hasReachedMaxSteps) {
+            stopAutoSolving();
+            return currentBoard;
+          }
+
+          // Perform a random step
+          const availableMoves = getValidMoves(currentBoard);
+          if (availableMoves.length === 0) {
+            return currentBoard;
+          }
+
+          const selectedMove = selectRandomMove(availableMoves);
+          const updatedBoard = executeMove(currentBoard, selectedMove);
+
+          const moveDescription = formatMoveDescription(selectedMove);
+          setLastPerformedMove(moveDescription);
+
+          setMoveHistory((previousHistory) => {
+            const moveNumber = previousHistory.length + 1;
+            const historyEntry = createHistoryEntry(
+              moveNumber,
+              selectedMove,
+              updatedBoard
+            );
+            return [historyEntry, ...previousHistory];
+          });
+
+          setTotalSteps((prev) => prev + 1);
+          return updatedBoard;
+        });
+      }
     }, animationSpeed);
   }
 
@@ -100,6 +248,11 @@ const Puzzle = () => {
 
     intervalTimerRef.current = null;
     setIsAutoRunning(false);
+
+    // Reset BFS solution tracking
+    bfsSolutionRef.current = null;
+    bfsStepIndexRef.current = 0;
+    bfsVisitedCountRef.current = 0;
   }
 
   function resetAndShuffle() {
@@ -159,6 +312,8 @@ const Puzzle = () => {
             isAutoRunning={isAutoRunning}
             startAutoSolving={startAutoSolving}
             isPuzzleShuffled={isPuzzleShuffled}
+            selectedAlgorithm={selectedAlgorithm}
+            setSelectedAlgorithm={setSelectedAlgorithm}
           />
 
           <section
@@ -169,12 +324,14 @@ const Puzzle = () => {
               label="Max steps"
               value={maxStepsAllowed}
               setValue={setMaxStepsAllowed}
+              disabled={isAutoRunning}
             />
 
             <ControlInputGroup
               label="Speed (ms)"
               value={animationSpeed}
               setValue={setAnimationSpeed}
+              disabled={isAutoRunning}
             />
           </section>
 

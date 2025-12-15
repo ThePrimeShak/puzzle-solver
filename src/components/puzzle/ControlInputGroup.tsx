@@ -2,12 +2,14 @@ type ControlInputProps = {
   label: string;
   setValue: React.Dispatch<React.SetStateAction<number>>;
   value: number;
+  disabled?: boolean;
 };
 
 const ControlInput: React.FC<ControlInputProps> = ({
   label,
   value,
   setValue,
+  disabled = false,
 }) => {
   return (
     <div aria-label="label and input" className="flex items-center gap-1">
@@ -20,7 +22,8 @@ const ControlInput: React.FC<ControlInputProps> = ({
         name={label.toLowerCase()}
         id={label.toLowerCase()}
         onChange={(e) => setValue(Number(e.target.value))}
-        className="w-24 rounded border px-2 py-1"
+        disabled={disabled}
+        className="w-24 rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
       />
     </div>
   );
