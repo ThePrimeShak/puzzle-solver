@@ -1,4 +1,4 @@
-import { EMPTY_TILE_VALUE } from "@/constants";
+import { EMPTY_TILE_VALUE } from "@/features/puzzle/constants";
 
 function isEmptyTile(tileValue: number): boolean {
   return tileValue === EMPTY_TILE_VALUE;
@@ -6,9 +6,9 @@ function isEmptyTile(tileValue: number): boolean {
 
 export function getTileBackgroundColor(tileValue: number): string {
   if (isEmptyTile(tileValue)) {
-    return "bg-gray-300";
+    return "border border-dashed border-slate-600 bg-slate-900 text-transparent";
   }
-  return "bg-white";
+  return "border border-slate-300 bg-slate-100 text-slate-950 shadow-[3px_3px_0_0_rgb(245_158_11)]";
 }
 
 export function getTileDisplayText(tileValue: number): string {

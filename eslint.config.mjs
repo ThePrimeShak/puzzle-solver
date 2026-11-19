@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import prettierConfig from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
@@ -86,6 +87,7 @@ const eslintConfig = [
       ],
     },
   },
+  prettierConfig,
 ];
 
 export default eslintConfig;

@@ -1,73 +1,43 @@
-# React + TypeScript + Vite
+# 8-Puzzle State Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A visual state-space explorer for the classic 8-puzzle, originally developed as a university Artificial Intelligence course project. Shuffle a solvable board, apply random valid operators, and inspect every resulting state in the move history.
 
-Currently, two official plugins are available:
+## Getting started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Node.js 20.19+ or 22.12+ is required by the current Vite toolchain.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Available scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `npm run dev` starts the local development server.
+- `npm run build` runs TypeScript checks and creates the production build.
+- `npm run check` runs formatting, linting, type checks, and the build.
+- `npm run format` formats the project with Prettier.
+- `npm run lint` checks the source with ESLint.
+- `npm run preview` serves the production build locally.
+
+## Project structure
+
+```text
+src/
+├── app/                      # Application shell
+├── components/layout/        # Shared page layout
+├── features/puzzle/
+│   ├── components/           # Puzzle presentation components
+│   ├── hooks/                # Puzzle state and timer orchestration
+│   ├── lib/                  # Pure board, move, and status functions
+│   ├── constants.ts          # Puzzle configuration and goal state
+│   └── types.ts              # Puzzle domain types
+├── styles/                   # Global Tailwind styles
+└── main.tsx                  # Browser entry point
 ```
+
+The puzzle feature is self-contained: UI components consume `usePuzzle`, while domain rules remain framework-independent under `lib/`.
+
+## Author
+
+Created by [ThePrimeShak](https://www.linkedin.com/in/theprimeshak/). Source code is available on [GitHub](https://github.com/ThePrimeShak/puzzle-solver).

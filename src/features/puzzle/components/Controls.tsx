@@ -1,4 +1,4 @@
-import ControlButton from "@/components/puzzle/ControlButton";
+import ControlButton from "@/features/puzzle/components/ControlButton";
 
 type ControlsProps = {
   resetAndShuffle: () => void;
@@ -7,7 +7,7 @@ type ControlsProps = {
   resetToGoal: () => void;
   isAutoRunning: boolean;
   startAutoSolving: () => void;
-  isPuzzleShuffled: boolean;
+  canMove: boolean;
 };
 
 const Controls: React.FC<ControlsProps> = ({
@@ -17,15 +17,16 @@ const Controls: React.FC<ControlsProps> = ({
   resetToGoal,
   isAutoRunning,
   startAutoSolving,
-  isPuzzleShuffled,
+  canMove,
 }) => {
   return (
-    <section aria-label="Puzzle Controls">
-      <h2 className="mb-2 text-center text-lg font-semibold md:text-left">
-        Controls
-      </h2>
+    <section
+      aria-label="Puzzle Controls"
+      className="border-t border-white/10 pt-5"
+    >
+      <h2 className="mb-3 text-sm font-semibold text-slate-200">Controls</h2>
 
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
         <ControlButton onClick={resetAndShuffle} variant="primary">
           New Shuffle
         </ControlButton>
@@ -33,7 +34,7 @@ const Controls: React.FC<ControlsProps> = ({
         <ControlButton
           onClick={performRandomStep}
           variant="secondary"
-          disabled={!isPuzzleShuffled}
+          disabled={!canMove}
         >
           Step Once
         </ControlButton>
@@ -42,7 +43,7 @@ const Controls: React.FC<ControlsProps> = ({
           <ControlButton
             onClick={startAutoSolving}
             variant="secondary"
-            disabled={!isPuzzleShuffled}
+            disabled={!canMove}
           >
             Run
           </ControlButton>
