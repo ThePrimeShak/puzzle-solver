@@ -1,4 +1,4 @@
-import { EMPTY_TILE_VALUE } from "@/features/puzzle/constants";
+import { EMPTY_TILE_VALUE } from "../constants";
 
 function isEmptyTile(tileValue: number): boolean {
   return tileValue === EMPTY_TILE_VALUE;

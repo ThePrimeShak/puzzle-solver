@@ -1,6 +1,6 @@
 {
   "name": "puzzle-solver",
-  "description": "A visual 8-puzzle state-space explorer created as a university Artificial Intelligence course project.",
+  "description": "An 8-puzzle state-space explorer that compares optimal breadth-first search with a random walk.",
   "private": true,
   "version": "0.0.0",
   "type": "module",

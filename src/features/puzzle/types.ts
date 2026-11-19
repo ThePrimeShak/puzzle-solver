@@ -12,4 +12,13 @@ export type MoveHistoryEntry = {
   description: string;
 };
 
+export type Algorithm = "bfs" | "random";
+
+export type SearchResult = {
+  solution: Move[];
+  depth: number;
+  nodesExplored: number;
+  visitedStates: number;
+};
+
 export type PuzzleStatus = "solved" | "running" | "idle";

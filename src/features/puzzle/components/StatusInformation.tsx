@@ -2,7 +2,13 @@ import {
   getAvailableMovesText,
   getPuzzleStatus,
 } from "@/features/puzzle/lib/status";
-import type { Board, Move, PuzzleStatus } from "@/features/puzzle/types";
+import type {
+  Algorithm,
+  Board,
+  Move,
+  PuzzleStatus,
+  SearchResult,
+} from "@/features/puzzle/types";
 
 type StatusInformationProps = {
   totalSteps: number;
@@ -10,6 +16,9 @@ type StatusInformationProps = {
   possibleMoves: Move[];
   puzzleBoard: Board;
   isAutoRunning: boolean;
+  searchResult: SearchResult | null;
+  selectedAlgorithm: Algorithm;
+  solverError: string | null;
 };
 
 const STATUS_LABELS: Record<PuzzleStatus, string> = {
@@ -24,6 +33,9 @@ const StatusInformation: React.FC<StatusInformationProps> = ({
   possibleMoves,
   puzzleBoard,
   isAutoRunning,
+  searchResult,
+  selectedAlgorithm,
+  solverError,
 }) => {
   const displayLastMove = lastPerformedMove ?? "-";
   const availableMovesText = getAvailableMovesText(possibleMoves);
@@ -52,6 +64,12 @@ const StatusInformation: React.FC<StatusInformationProps> = ({
 
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="stat-card">
+          <span className="stat-label">Algorithm</span>
+          <strong className="stat-value text-sm uppercase">
+            {selectedAlgorithm}
+          </strong>
+        </div>
+        <div className="stat-card">
           <span className="stat-label">Step count</span>
           <strong className="stat-value">{totalSteps}</strong>
         </div>
@@ -67,7 +85,34 @@ const StatusInformation: React.FC<StatusInformationProps> = ({
             {displayLastMove}
           </strong>
         </div>
+
+        {searchResult && (
+          <>
+            <div className="stat-card">
+              <span className="stat-label">Solution depth</span>
+              <strong className="stat-value">{searchResult.depth}</strong>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Nodes explored</span>
+              <strong className="stat-value">
+                {searchResult.nodesExplored.toLocaleString()}
+              </strong>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">States visited</span>
+              <strong className="stat-value">
+                {searchResult.visitedStates.toLocaleString()}
+              </strong>
+            </div>
+          </>
+        )}
       </div>
+
+      {solverError && (
+        <p className="mt-2 border border-rose-400/40 bg-rose-950/40 px-3 py-2 text-sm text-rose-200">
+          {solverError}
+        </p>
+      )}
     </section>
   );
 };

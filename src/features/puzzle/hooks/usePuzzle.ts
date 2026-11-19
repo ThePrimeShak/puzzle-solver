@@ -11,11 +11,19 @@ import {
   createShuffledPuzzle,
   executeMove,
   formatMoveDescription,
+  getHardestPuzzle,
   getValidMoves,
   selectRandomMove,
+  solvePuzzleWithBfs,
 } from "@/features/puzzle/lib/puzzle";
 import { isBoardSolved } from "@/features/puzzle/lib/status";
-import type { Board, MoveHistoryEntry } from "@/features/puzzle/types";
+import type {
+  Algorithm,
+  Board,
+  Move,
+  MoveHistoryEntry,
+  SearchResult,
+} from "@/features/puzzle/types";
 
 type PuzzleSession = {
   board: Board;
@@ -38,6 +46,10 @@ export function usePuzzle() {
   const [animationSpeed, setAnimationSpeed] = useState(
     DEFAULT_ANIMATION_SPEED_MS
   );
+  const [selectedAlgorithm, setSelectedAlgorithmState] =
+    useState<Algorithm>("bfs");
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [solverError, setSolverError] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
 
   const possibleMoves = getValidMoves(session.board);
@@ -50,6 +62,27 @@ export function usePuzzle() {
     }
 
     setIsAutoRunning(false);
+  }, []);
+
+  const applyMove = useCallback((move: Move) => {
+    setSession((currentSession) => {
+      if (isBoardSolved(currentSession.board)) {
+        return currentSession;
+      }
+
+      const updatedBoard = executeMove(currentSession.board, move);
+      const nextStep = currentSession.totalSteps + 1;
+
+      return {
+        board: updatedBoard,
+        history: [
+          createHistoryEntry(nextStep, move, updatedBoard),
+          ...currentSession.history,
+        ],
+        lastMove: formatMoveDescription(move),
+        totalSteps: nextStep,
+      };
+    });
   }, []);
 
   const performRandomStep = useCallback(() => {
@@ -76,11 +109,71 @@ export function usePuzzle() {
     });
   }, []);
 
+  const performStep = useCallback(() => {
+    setSolverError(null);
+
+    if (selectedAlgorithm === "random") {
+      setSearchResult(null);
+      performRandomStep();
+      return;
+    }
+
+    const result = solvePuzzleWithBfs(session.board);
+
+    if (!result) {
+      setSolverError("BFS could not find a solution within the search limit.");
+      return;
+    }
+
+    setSearchResult(result);
+    const nextMove = result.solution[0];
+
+    if (nextMove) {
+      applyMove(nextMove);
+    }
+  }, [applyMove, performRandomStep, selectedAlgorithm, session.board]);
+
   const startAutoSolving = useCallback(() => {
     if (timerRef.current !== null || !canMove) {
       return;
     }
 
+    setSolverError(null);
+
+    if (selectedAlgorithm === "bfs") {
+      const result = solvePuzzleWithBfs(session.board);
+
+      if (!result) {
+        setSolverError(
+          "BFS could not find a solution within the search limit."
+        );
+        return;
+      }
+
+      setSearchResult(result);
+      let solutionIndex = 0;
+      setIsAutoRunning(true);
+
+      timerRef.current = window.setInterval(() => {
+        const nextMove = result.solution[solutionIndex];
+
+        if (!nextMove) {
+          stopAutoSolving();
+          return;
+        }
+
+        applyMove(nextMove);
+        solutionIndex += 1;
+
+        if (solutionIndex >= result.solution.length) {
+          stopAutoSolving();
+        }
+      }, animationSpeed);
+
+      return;
+    }
+
+    setSearchResult(null);
     let stepsTaken = 0;
     setIsAutoRunning(true);
 
@@ -94,24 +187,42 @@ export function usePuzzle() {
     }, animationSpeed);
   }, [
     animationSpeed,
+    applyMove,
     canMove,
     maxStepsAllowed,
     performRandomStep,
+    selectedAlgorithm,
+    session.board,
     stopAutoSolving,
   ]);
 
+  const resetSession = useCallback(
+    (board: Board) => {
+      stopAutoSolving();
+      setSearchResult(null);
+      setSolverError(null);
+      setSession({ ...INITIAL_SESSION, board });
+    },
+    [stopAutoSolving]
+  );
+
   const resetAndShuffle = useCallback(() => {
-    stopAutoSolving();
-    setSession({
-      ...INITIAL_SESSION,
-      board: createShuffledPuzzle(DEFAULT_SHUFFLE_MOVES),
-    });
-  }, [stopAutoSolving]);
+    resetSession(createShuffledPuzzle(DEFAULT_SHUFFLE_MOVES));
+  }, [resetSession]);
+
+  const loadHardestPuzzle = useCallback(() => {
+    resetSession(getHardestPuzzle());
+  }, [resetSession]);
 
   const resetToGoal = useCallback(() => {
-    stopAutoSolving();
-    setSession(INITIAL_SESSION);
-  }, [stopAutoSolving]);
+    resetSession(GOAL_STATE);
+  }, [resetSession]);
+
+  const setSelectedAlgorithm = useCallback((algorithm: Algorithm) => {
+    setSelectedAlgorithmState(algorithm);
+    setSearchResult(null);
+    setSolverError(null);
+  }, []);
 
   useEffect(() => {
     if (isAutoRunning && !canMove) {
@@ -132,15 +243,20 @@ export function usePuzzle() {
     canMove,
     isAutoRunning,
     lastPerformedMove: session.lastMove,
+    loadHardestPuzzle,
     maxStepsAllowed,
     moveHistory: session.history,
-    performRandomStep,
+    performStep,
     possibleMoves,
     puzzleBoard: session.board,
     resetAndShuffle,
     resetToGoal,
+    searchResult,
+    selectedAlgorithm,
     setAnimationSpeed,
     setMaxStepsAllowed,
+    setSelectedAlgorithm,
+    solverError,
     startAutoSolving,
     stopAutoSolving,
     totalSteps: session.totalSteps,

@@ -2,12 +2,14 @@ type ControlInputGroupProps = {
   label: string;
   setValue: React.Dispatch<React.SetStateAction<number>>;
   value: number;
+  disabled?: boolean;
 };
 
 const ControlInputGroup = ({
   label,
   value,
   setValue,
+  disabled = false,
 }: ControlInputGroupProps) => {
   const inputId = label.toLowerCase().replaceAll(" ", "-");
 
@@ -22,8 +24,9 @@ const ControlInputGroup = ({
         min={1}
         name={inputId}
         id={inputId}
+        disabled={disabled}
         onChange={(e) => setValue(Math.max(1, Number(e.target.value)))}
-        className="w-full border border-slate-600 bg-slate-950 px-3 py-2 text-sm font-medium text-white transition-colors outline-none focus:border-amber-300 focus:ring-2 focus:ring-amber-300/10"
+        className="w-full border border-slate-600 bg-slate-950 px-3 py-2 text-sm font-medium text-white transition-colors outline-none focus:border-amber-300 focus:ring-2 focus:ring-amber-300/10 disabled:cursor-not-allowed disabled:opacity-40"
       />
     </div>
   );

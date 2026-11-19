@@ -11,15 +11,20 @@ const Puzzle = () => {
     canMove,
     isAutoRunning,
     lastPerformedMove,
+    loadHardestPuzzle,
     maxStepsAllowed,
     moveHistory,
-    performRandomStep,
+    performStep,
     possibleMoves,
     puzzleBoard,
     resetAndShuffle,
     resetToGoal,
+    searchResult,
+    selectedAlgorithm,
     setAnimationSpeed,
     setMaxStepsAllowed,
+    setSelectedAlgorithm,
+    solverError,
     startAutoSolving,
     stopAutoSolving,
     totalSteps,
@@ -35,8 +40,8 @@ const Puzzle = () => {
           A visual study of the 8-puzzle state space.
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
-          Shuffle a solvable board, apply valid operators manually or as a
-          random walk, and inspect every resulting state in sequence.
+          Compare breadth-first search with a random walk, follow the optimal
+          solution one move at a time, and inspect every resulting state.
         </p>
       </div>
 
@@ -47,12 +52,15 @@ const Puzzle = () => {
 
           <Controls
             resetAndShuffle={resetAndShuffle}
-            performRandomStep={performRandomStep}
+            performStep={performStep}
             stopAutoSolving={stopAutoSolving}
             resetToGoal={resetToGoal}
+            loadHardestPuzzle={loadHardestPuzzle}
             isAutoRunning={isAutoRunning}
             startAutoSolving={startAutoSolving}
             canMove={canMove}
+            selectedAlgorithm={selectedAlgorithm}
+            setSelectedAlgorithm={setSelectedAlgorithm}
           />
 
           <section
@@ -60,15 +68,17 @@ const Puzzle = () => {
             className="grid grid-cols-2 gap-3"
           >
             <ControlInputGroup
-              label="Max steps"
+              label="Random max steps"
               value={maxStepsAllowed}
               setValue={setMaxStepsAllowed}
+              disabled={isAutoRunning || selectedAlgorithm === "bfs"}
             />
 
             <ControlInputGroup
               label="Speed (ms)"
               value={animationSpeed}
               setValue={setAnimationSpeed}
+              disabled={isAutoRunning}
             />
           </section>
 
@@ -78,6 +88,9 @@ const Puzzle = () => {
             possibleMoves={possibleMoves}
             puzzleBoard={puzzleBoard}
             isAutoRunning={isAutoRunning}
+            searchResult={searchResult}
+            selectedAlgorithm={selectedAlgorithm}
+            solverError={solverError}
           />
         </div>
 

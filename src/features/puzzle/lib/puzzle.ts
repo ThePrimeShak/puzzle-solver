@@ -2,8 +2,17 @@ import {
   EMPTY_TILE_VALUE,
   GOAL_STATE,
   GRID_SIZE,
-} from "@/features/puzzle/constants";
-import type { Board, Move, MoveHistoryEntry } from "@/features/puzzle/types";
+  HARDEST_PUZZLES,
+  MAX_BFS_ITERATIONS,
+} from "../constants";
+import { isBoardSolved } from "./status";
+
+import type { Board, Move, MoveHistoryEntry, SearchResult } from "../types";
+
+type ParentLink = {
+  previousKey: string;
+  move: Move;
+};
 
 function findEmptyTileIndex(board: Board): number {
   return board.indexOf(EMPTY_TILE_VALUE);
@@ -64,6 +73,100 @@ export function createShuffledPuzzle(numberOfMoves: number): Board {
   }
 
   return board;
+}
+
+export function getHardestPuzzle(): Board {
+  const puzzle =
+    HARDEST_PUZZLES[Math.floor(Math.random() * HARDEST_PUZZLES.length)];
+
+  if (!puzzle) {
+    throw new Error("No hard puzzle configurations are available");
+  }
+
+  return [...puzzle];
+}
+
+function serializeBoard(board: Board): string {
+  return board.join(",");
+}
+
+function reconstructPath(
+  solvedKey: string,
+  parents: ReadonlyMap<string, ParentLink | null>
+): Move[] {
+  const reversedPath: Move[] = [];
+  let currentKey = solvedKey;
+
+  while (true) {
+    const parent = parents.get(currentKey);
+
+    if (!parent) {
+      break;
+    }
+
+    reversedPath.push(parent.move);
+    currentKey = parent.previousKey;
+  }
+
+  return reversedPath.reverse();
+}
+
+export function solvePuzzleWithBfs(
+  startBoard: Board,
+  maxIterations = MAX_BFS_ITERATIONS
+): SearchResult | null {
+  if (isBoardSolved(startBoard)) {
+    return {
+      solution: [],
+      depth: 0,
+      nodesExplored: 0,
+      visitedStates: 1,
+    };
+  }
+
+  const startKey = serializeBoard(startBoard);
+  const queue: Board[] = [[...startBoard]];
+  const parents = new Map<string, ParentLink | null>([[startKey, null]]);
+  let queueIndex = 0;
+  let nodesExplored = 0;
+
+  while (queueIndex < queue.length && nodesExplored < maxIterations) {
+    const currentBoard = queue[queueIndex];
+    queueIndex += 1;
+
+    if (!currentBoard) {
+      break;
+    }
+
+    nodesExplored += 1;
+    const currentKey = serializeBoard(currentBoard);
+
+    for (const move of getValidMoves(currentBoard)) {
+      const nextBoard = executeMove(currentBoard, move);
+      const nextKey = serializeBoard(nextBoard);
+
+      if (parents.has(nextKey)) {
+        continue;
+      }
+
+      parents.set(nextKey, { previousKey: currentKey, move });
+
+      if (isBoardSolved(nextBoard)) {
+        const solution = reconstructPath(nextKey, parents);
+
+        return {
+          solution,
+          depth: solution.length,
+          nodesExplored,
+          visitedStates: parents.size,
+        };
+      }
+
+      queue.push(nextBoard);
+    }
+  }
+
+  return null;
 }
 
 export function formatMoveDescription(move: Move): string {

@@ -8,7 +8,7 @@ const History: React.FC<HistoryProps> = ({ histories }) => {
   const hasNoMoves = histories.length === 0;
 
   return (
-    <section className="panel flex min-h-[28rem] flex-1 flex-col p-5 sm:p-6">
+    <section className="panel flex h-[32rem] min-h-[28rem] flex-1 flex-col p-5 sm:p-6 lg:h-auto lg:max-h-[50rem]">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="section-eyebrow">Activity</p>

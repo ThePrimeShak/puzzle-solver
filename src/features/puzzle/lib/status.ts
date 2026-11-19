@@ -1,5 +1,6 @@
-import { GOAL_STATE } from "@/features/puzzle/constants";
-import type { Board, Move, PuzzleStatus } from "@/features/puzzle/types";
+import { GOAL_STATE } from "../constants";
+
+import type { Board, Move, PuzzleStatus } from "../types";
 
 export function isBoardSolved(board: Board): boolean {
   return (
