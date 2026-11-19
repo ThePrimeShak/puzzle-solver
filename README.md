@@ -1,51 +1,57 @@
 # 8-Puzzle State Explorer
 
-A visual state-space explorer for the classic 8-puzzle, originally developed as a university Artificial Intelligence course project. Compare optimal breadth-first search with a random walk, animate the solution, and inspect every resulting state in the move history.
+An 8-puzzle search visualizer built with React and TypeScript for a university AI course.
+
+**Live demo:** [Open on Vercel](https://puzzle-solver-beryl.vercel.app)
+
+## Overview
+
+Created for a university Artificial Intelligence course to compare breadth-first search with a random walk over the classic 8-puzzle state space.
 
 ## Features
 
-- Finds a shortest solution with breadth-first search (BFS).
-- Runs the computed solution automatically or one move at a time.
-- Reports solution depth, explored nodes, and visited states.
-- Includes both maximum-depth 31-move configurations for the configured goal state.
-- Keeps the original random-walk mode for comparison.
+- Find a shortest solution using breadth-first search.
+- Animate the computed solution or advance one move at a time.
+- Inspect solution depth, explored nodes, visited states, and move history.
+- Try maximum-depth 31-move configurations and the original random-walk mode.
 
-## Getting started
+## Tech stack
 
-```bash
-npm install
+React 19, TypeScript, Vite, Tailwind CSS.
+
+## Run locally
+
+Use Node.js 22.12 or newer and npm.
+
+```sh
+git clone https://github.com/ThePrimeShak/puzzle-solver.git
+cd puzzle-solver
+npm ci
 npm run dev
 ```
 
-Node.js 20.19+ or 22.12+ is required by the current Vite toolchain.
-
 ## Available scripts
 
-- `npm run dev` starts the local development server.
-- `npm run build` runs TypeScript checks and creates the production build.
-- `npm run check` runs formatting, linting, type checks, and the build.
-- `npm run format` formats the project with Prettier.
-- `npm run lint` checks the source with ESLint.
-- `npm run preview` serves the production build locally.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create the production build |
+| `npm run preview` | Preview the production build |
+| `npm run typecheck` | Check TypeScript types |
+| `npm run lint` | Check code with ESLint |
+| `npm run format` | Format project files |
+| `npm run format:check` | Check formatting |
+| `npm run check` | Run the configured quality checks |
 
 ## Project structure
 
-```text
-src/
-├── app/                      # Application shell
-├── components/layout/        # Shared page layout
-├── features/puzzle/
-│   ├── components/           # Puzzle presentation components
-│   ├── hooks/                # Puzzle state and timer orchestration
-│   ├── lib/                  # Pure board, move, and status functions
-│   ├── constants.ts          # Puzzle configuration and goal state
-│   └── types.ts              # Puzzle domain types
-├── styles/                   # Global Tailwind styles
-└── main.tsx                  # Browser entry point
-```
+- `src/features/puzzle/` — board rules, BFS logic, state hook, and puzzle UI.
+- `src/app/`, `src/components/layout/`, and `src/styles/` — application shell and styling.
 
-The puzzle feature is self-contained: UI components consume `usePuzzle`, while domain rules and the BFS implementation remain framework-independent under `lib/`.
+## Scope and limitations
+
+The configured goal is `[0, 1, 2, 3, 4, 5, 6, 7, 8]`. Search runs on the browser main thread, so difficult configurations can briefly affect responsiveness.
 
 ## Author
 
-Created by [ThePrimeShak](https://www.linkedin.com/in/theprimeshak/). Source code is available on [GitHub](https://github.com/ThePrimeShak/puzzle-solver).
+Built by [ThePrimeShak](https://github.com/ThePrimeShak) · [LinkedIn](https://www.linkedin.com/in/theprimeshak/).
